@@ -1,0 +1,53 @@
+# 开题引导助手 · Master Thesis Guidance
+
+一个纯静态网页 Agent：**由助手提问**，通过 9 关引导式对话，帮硕士生把模糊的想法一步步收敛成可动手的开题方向，最后自动生成《开题方向备忘单》（含研究问题、理论、数据计划、时间线和所需材料清单）。
+
+引导逻辑提炼自 2026-10-02 导师一对一开题面谈《Master Thesis Guidance Discussion》，内置了面谈中的全部判断标准（如：4P 只选一个、价格/渠道不推荐、问卷慎用、自建档案数据 300-400 条图文帖、至少一个核心假设显著、1 月底初稿硬期限等）。
+
+## 学生怎么用
+
+1. 打开链接（见下方"在线访问"）；
+2. 跟着助手的问题一路回答，不确定就点选项按钮或说"不确定"；
+3. 走完 9 关，复制/导出《开题方向备忘单》，填进学校开题模板；
+4. 对话只存在学生自己的浏览器本地，不上传任何数据。
+
+## 在线访问
+
+部署方式为 GitHub Pages（仓库：`icyroland/thesis-proposal-agent`）：
+
+- 链接：https://icyroland.github.io/thesis-proposal-agent/
+
+更新页面后重新推送即可自动生效：
+
+```bash
+cd thesis-proposal-agent
+git add index.html && git commit -m "update" && git push
+```
+
+## 本地运行
+
+无需任何构建工具，直接双击 `index.html` 用浏览器打开即可；或：
+
+```bash
+cd thesis-proposal-agent && python3 -m http.server 8080
+# 访问 http://localhost:8080
+```
+
+## 可选：接入大模型（更自然的对话）
+
+默认为**内置规则模式**（离线可用、零成本、判断标准 100% 稳定）。想要更自然的追问语气，可接入任意 OpenAI 兼容接口：
+
+- 学生侧：点页面右上角 ⚙︎，填 Base URL / API Key / 模型名（如智谱 `https://open.bigmodel.cn/api/paas/v4` + `glm-4-flash`），密钥只存本机浏览器；
+- 导师侧（让学生免配置）：自行架设一个带密钥的转发接口（如 20 行的 Cloudflare Worker），把 Base URL 指向它。
+
+> 大模型只负责"润色措辞"，关卡推进和判断标准仍由内置引擎决定，不会跑偏。
+
+## 自定义引导逻辑
+
+所有关卡、问题、判断标准都在 `index.html` 的 `STAGES` 与 `STANCE` 两个对象里，直接改文案即可，无需其他配置。
+
+## 隐私
+
+- 不含任何后端、不收集任何数据、无 Cookie；
+- 学生对话仅存于其浏览器 `localStorage`；
+- 页面内容不包含任何学生姓名或会议原始内容。

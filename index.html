@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>开题引导助手 · Master Thesis Guidance</title>
+<style>
+  :root{
+    --bg:#f3f5f9; --card:#ffffff; --ink:#1f2733; --sub:#6b7686;
+    --brand:#2f5fa8; --brand-soft:#e8eefb; --line:#e3e8f0;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",Roboto,sans-serif;
+    font-size:16px; line-height:1.6;
+  }
+  #app{max-width:760px;margin:0 auto;height:100dvh;display:flex;flex-direction:column}
+  header{
+    background:linear-gradient(135deg,#2f5fa8,#3d7bb8);color:#fff;
+    padding:14px 18px 12px;flex:0 0 auto;box-shadow:0 2px 10px rgba(31,51,90,.15);
+  }
+  .hrow{display:flex;align-items:center;gap:10px}
+  .logo{font-size:26px}
+  .htxt{flex:1;min-width:0}
+  .htxt h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.5px}
+  .htxt .sub{font-size:12px;opacity:.85;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hbtns{display:flex;gap:6px}
+  .hbtn{
+    background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.35);color:#fff;
+    border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;font-family:inherit;
+  }
+  .hbtn:hover{background:rgba(255,255,255,.28)}
+  .progress-wrap{margin-top:10px;display:flex;align-items:center;gap:8px}
+  .progress-bar{flex:1;height:6px;background:rgba(255,255,255,.25);border-radius:3px;overflow:hidden}
+  .progress-fill{height:100%;width:0%;background:#ffd66b;border-radius:3px;transition:width .5s ease}
+  .progress-label{font-size:11px;opacity:.9;white-space:nowrap}
+  main#chat{flex:1 1 auto;overflow-y:auto;padding:18px 14px 10px;scroll-behavior:smooth}
+  .msg{display:flex;gap:8px;margin-bottom:14px;align-items:flex-end}
+  .msg.user{justify-content:flex-end}
+  .avatar{
+    width:34px;height:34px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+    font-size:18px;background:#dbe6f7;border:1px solid #c3d3ee;
+  }
+  .bubble{
+    max-width:78%;padding:10px 14px;border-radius:14px;position:relative;
+    background:var(--agent);border:1px solid var(--line);box-shadow:0 1px 3px rgba(30,50,90,.06);
+    white-space:pre-wrap;word-break:break-word;
+  }
+  .msg.agent .bubble{border-top-left-radius:4px}
+  .msg.user .bubble{background:var(--brand);color:#fff;border:none;border-top-right-radius:4px}
+  .bubble b{font-weight:700}
+  .typing{display:inline-flex;gap:4px;padding:12px 16px}
+  .typing i{width:6px;height:6px;border-radius:50%;background:#9db2d4;animation:blink 1.2s infinite}
+  .typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:1}}
+  .sheet{max-width:100%;background:#fffdf5;border:1px solid #eadfb8;border-radius:14px;padding:14px 16px;margin-bottom:14px}
+  .sheet h2{margin:0 0 6px;font-size:16px;color:#7a5b00}
+  .sheet h3{margin:12px 0 4px;font-size:13.5px;color:#8a6d1a;border-left:3px solid #e0b84e;padding-left:8px}
+  .sheet p,.sheet li{font-size:13.5px;margin:4px 0;color:#4d4433}
+  footer{flex:0 0 auto;background:var(--card);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+  #chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+  .chip{
+    background:var(--brand-soft);color:var(--brand);border:1px solid #c9d8f3;border-radius:16px;
+    padding:5px 13px;font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit;
+  }
+  .chip:hover{background:#d7e3fa}
+  .inputbar{display:flex;gap:8px;align-items:flex-end}
+  #input{
+    flex:1;resize:none;border:1.5px solid var(--line);border-radius:12px;padding:9px 12px;
+    font-size:15px;font-family:inherit;max-height:120px;outline:none;background:#fafbfd;
+  }
+  #input:focus{border-color:var(--brand);background:#fff}
+  #send{
+    background:var(--brand);color:#fff;border:none;border-radius:12px;padding:10px 18px;
+    font-size:15px;cursor:pointer;font-family:inherit;
+  }
+  #send:disabled{background:#b9c6dd;cursor:not-allowed}
+  .foot-hint{font-size:11px;color:var(--sub);text-align:center;margin-top:6px}
+  dialog{
+    border:none;border-radius:14px;padding:20px;max-width:420px;width:92%;
+    box-shadow:0 10px 40px rgba(0,0,0,.2);
+  }
+  dialog::backdrop{background:rgba(20,30,50,.45)}
+  dialog h3{margin:0 0 10px;font-size:16px}
+  dialog label{display:block;font-size:13px;color:var(--sub);margin:10px 0 4px}
+  dialog input{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;font-family:monospace}
+  dialog .note{font-size:12px;color:var(--sub);background:#f6f8fb;border-radius:8px;padding:8px 10px;margin-top:10px}
+  dialog .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+  dialog button{border:none;border-radius:8px;padding:8px 16px;font-size:14px;cursor:pointer;font-family:inherit}
+  .btn-primary{background:var(--brand);color:#fff}
+  .btn-plain{background:#eef1f6;color:var(--ink)}
+  @media (max-width:480px){
+    .bubble{max-width:86%}
+    .htxt h1{font-size:15px}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="hrow">
+      <div class="logo">🧭</div>
+      <div class="htxt">
+        <h1>开题引导助手 <span style="font-weight:400;font-size:12px;opacity:.8">Master Thesis Guidance</span></h1>
+        <div class="sub">由助手提问 · 层层聚焦 · 生成你的《开题方向备忘单》</div>
+      </div>
+      <div class="hbtns">
+        <button class="hbtn" id="btn-export" title="导出备忘单与对话记录">导出</button>
+        <button class="hbtn" id="btn-restart" title="重新开始">重来</button>
+        <button class="hbtn" id="btn-settings" title="配置大模型（可选）">⚙︎</button>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="pfill"></div></div>
+      <div class="progress-label" id="plabel">准备开始</div>
+    </div>
+  </header>
+
+  <main id="chat"></main>
+
+  <footer>
+    <div id="chips"></div>
+    <div class="inputbar">
+      <textarea id="input" rows="1" placeholder="输入你的回答…（回车发送，Shift+回车换行）"></textarea>
+      <button id="send">发送</button>
+    </div>
+    <div class="foot-hint">对话仅保存在你自己的浏览器本地 · 引导逻辑源自导师一对一开题面谈（2026-10）· 不替代与导师的正式讨论</div>
+  </footer>
+</div>
+
+<dialog id="settings">
+  <h3>⚙︎ 大模型配置（可选）</h3>
+  <p style="font-size:13px;color:var(--sub);margin:4px 0">
+    不配置也能完整使用：默认走<b>内置规则引导</b>（离线可用）。
+    配置任意 OpenAI 兼容接口（如智谱 GLM）后，助手的追问语气会更自然、总结更个性化。密钥只保存在本机浏览器。
+  </p>
+  <label>接口地址 Base URL</label>
+  <input id="cfg-base" placeholder="https://open.bigmodel.cn/api/paas/v4">
+  <label>API Key</label>
+  <input id="cfg-key" type="password" placeholder="留空 = 使用内置规则模式">
+  <label>模型 Model</label>
+  <input id="cfg-model" placeholder="glm-4-flash">
+  <div class="note">提示：如果你是部署者（导师），想让学生免配置使用大模型，需要自行架设一个带密钥的转发接口，把 Base URL 指向它即可。</div>
+  <div class="actions">
+    <button class="btn-plain" id="cfg-clear">清除配置</button>
+    <button class="btn-primary" id="cfg-save">保存</button>
+  </div>
+</dialog>
+
+<script>
+"use strict";
+/* =====================================================================
+   开题引导助手 —— 引导逻辑提炼自 2026-10-02《Master Thesis Guidance Discussion》
+   导师引导路径：兴趣 → 行业与品牌 → 实践问题(CMO视角) → 4P聚焦 → 理论抓手
+                → 方法与数据 → 变量与模型 → 范围界定 → 时间线 → 所需内容清单
+   ===================================================================== */
+
+const $ = s => document.querySelector(s);
+const chat = $("#chat"), input = $("#input"), sendBtn = $("#send"), chipsEl = $("#chips");
+const pfill = $("#pfill"), plabel = $("#plabel");
+
+/* ---------------- 导师立场（从面谈中提炼，规则模式核心判断） ---------------- */
+const STANCE = {
+  price:   "坦白说，我不建议硕士论文做“价格”：方案谁都能提，但很难验证提得对不对——你能提出建议，却很难说服审稿人这个建议是好的。除非你有独特的验证手段，否则换一个维度更稳。",
+  place:   "渠道（Place）我也不建议：理论上不好建模，实践上你作为一个研究者也改不动品牌的渠道体系，两头都难。建议换。",
+  product: "产品维度可以做，但先问自己：这个品牌的产品现在还有多大改进空间？如果产品本身已经不差，那问题多半出在“怎么说”而不是“做什么”。真做产品，我们就转向研究消费者对产品各维度的感知与权衡。",
+  promo:   "好选择。推广（营销传播）是最可行、文献支撑也最丰富的维度：产品就在那里、价格短期动不了，品牌唯一能快速发力的就是“怎么跟消费者沟通”。",
+  survey:  "说实话我不太建议问卷：设计起来最容易，但时间紧、回收质量难保证，数据“人工痕迹”重，答辩时容易被挑战。除非你能说清样本从哪来、多少份、质量怎么控制，否则建议改用自建档案数据。",
+  qual:    "纯定性研究（只有访谈/案例）现在越来越难过审，风险偏高。更稳的组合是“定性开头 + 定量收尾”：用不超过 10 人的小样本访谈帮你圈定变量，再上定量验证。",
+  archival:"好路线。自建档案数据对硕士论文来说最扎实：数据客观、可得、可控，而且现在可以用 AI 辅助抽取和编码，工作量完全可控。",
+  exp:     "实验可以做，而且不用很复杂：做两版帖子（对应两种策略）× 两组被试，验证哪种更有效就够。但实验操纵什么，最好先从档案数据里获得直觉。",
+  second:  "可以，但要先确认三件事：数据覆盖你的品牌和时间段吗？指标是原始数据还是已加工？你拿得到授权吗？三者都过关就继续；任何一条存疑，自建档案数据是更可控的备选。",
+  elm:     "ELM（精加工可能性模型）本身没错，但它被用得太滥，审稿人容易审美疲劳。可以把“中心/边缘路径”当作给传播内容归类的框架之一，主理论建议配一个更贴合你数据的。",
+  tooSimple:"预警：只有一两个预测变量的模型，对硕士论文来说太单薄了。往这几个方向加变量：内容主题类型、媒介形式（图文/视频、长文/短文）、发布渠道、诉求策略（情感 vs 功能）、原产国叙事（“德国制造”式话语）。",
+  sig:     "记住一条底线：假设不必全部显著，但至少要有一个核心假设显著——全部不显著，论文就很难收尾。假设要逐条检验、分开报告。",
+  scope:   "把范围收窄到社交媒体完全成立，理由也是现成的：经典品牌正试图在社媒上争夺年轻世代的注意力，这是它们的主战场。单品牌就够——研究站在该品牌管理者的视角，问题自然聚焦。",
+  proposal:"开题报告不用过度加工：把我们已经定下来的内容填进学校模板就行。你的主战场是论文本身。"
+};
+
+/* ---------------- 阶段定义 ---------------- */
+const STAGES = [
+{ id:"interest", label:"研究兴趣",
+  q:["你好！我是你的<b>开题引导助手</b> 🧭。接下来的十几分钟，由我来提问，帮你把脑中模糊的想法一步步收敛成一份可以动手的开题方向。\n\n我们会走过 10 个关口：兴趣 → 行业与品牌 → 实践问题 → 营销维度 → 理论 → 方法与数据 → 模型变量 → 范围 → 时间线 → 材料盘点。\n\n三条规则：\n1️⃣ 我问，你答。不确定就直说“不确定”，我会给你选项；\n2️⃣ 每一步先定下来再走下一步，之后随时可以反悔重来；\n3️⃣ 走完全部关口，我给你一份《开题方向备忘单》：研究问题、理论、数据计划、所需材料清单，一次配齐。\n\n对话只存在你自己的浏览器里，放心聊。\n\n准备好了就开始第一问：**你目前最想研究的现象或兴趣是什么？**一句话也行，比如“德系品牌在中国不吃香了”“直播带货对品牌忠诚度的影响”。"],
+  chips:["我还没想好，帮帮我"],
+  handle(a,S){
+    const t=a.trim();
+    if(/还没想好|帮帮我|没有想法|不知道|没想法|帮我想/.test(t)){
+      return {msgs:["没关系，很多人来的时候只有一个模糊的直觉。我给你三个常见的选题起点，感受一下：\n① <b>消费者态度变化</b>：某类外国品牌在消费者心中的光环在增强或褪去（比如“德系品质”的溢价被本土品牌侵蚀）；\n② <b>传播方式效果</b>：品牌换了一种打法（情感叙事、KOL、社媒内容）之后，互动或转化明显不同；\n③ <b>新场景适应</b>：老品牌进入新品类或新市场（比如传统车企做电动车）水土不服。\n\n挑一个最接近你直觉的，或者用你自己的话随便说一句——哪怕很粗糙也行，我们后面会一步步磨尖。"],
+        chips:["① 消费者态度变化","② 传播方式效果","③ 新场景适应"],stay:true};
+    }
+    if(t.length<8){
+      return {msgs:["这个起点可以，但太宽了——好选题都要能落到“谁、在哪、发生了什么变化”。\n再具体一点：这个现象发生在<b>哪类消费者、哪类品牌或哪个市场</b>身上？你是在哪里注意到它的（新闻、购物经历、实习、数据报告）？"],stay:true};
+    }
+    S.interest=t;
+    return {msgs:["不错，这个起点有故事可讲 👍。\n下一步我们把它落到具体的行业和品牌上。"]};
+  }
+},
+{ id:"industry", label:"行业与品牌",
+  q:["好选题要能落到<b>具体的行业和品牌</b>上。在你刚才说的现象里——\n\n最先想到哪个行业？这个行业里，哪个品牌最有代表性？"],
+  chips:["汽车（外资 vs 本土新能源）","美妆护肤","家电","食品饮料"],
+  handle(a,S){
+    const t=a.trim();
+    // 第二次进入：上一轮已定行业，这句应是品牌名
+    if(S._industryRaw){
+      S.industry = S._industryRaw + "（代表品牌：" + t + "）";
+      return {msgs:["很好，<b>行业和品牌都定了，就不要再摇摆</b>——之后随时可以回来换，但现在我们锁定它。\n接下来换一个视角，这是整场开题里最重要的一步。"]};
+    }
+    const indHit = /(汽车|车|新能源|ev|奔驰|宝马|奥迪|保时捷|大众|护肤|美妆|化妆|面霜|妮维雅|拜尔斯道夫|家电|电器|冰箱|洗衣机|西门子|博世|小米|食品|饮料|快消|咖啡|啤酒|奶粉|服装|运动|电车)/i.exec(t);
+    if(!indHit){
+      return {msgs:["你的想法我收到了，但它落在<b>哪个行业</b>？给行业安个家，选题才算落地。\n（几个常见的框：汽车、美妆护肤、家电、食品饮料……都不合适就自己填）"],stay:true};
+    }
+    const hasBrand = /(宝马|奔驰|奥迪|保时捷|大众|西门子|博世|妮维雅|小米|华为|海尔|格力|美的|农夫山泉|可口可乐|星巴克|比亚迪|蔚来|理想|小鹏)/.test(t);
+    S._industryRaw=t;
+    if(!hasBrand){
+      return {msgs:["「"+t+"」——好。那在这个行业里，<b>哪个品牌最能代表你说的这个现象</b>？选一个你觉得“最能说明问题”的，不用贪多，单品牌反而好做深。"],stay:true};
+    }
+    S.industry=t;
+    return {msgs:["很好，<b>行业和品牌都定了，就不要再摇摆</b>——之后随时可以回来换，但现在我们锁定它。\n接下来换一个视角，这是整场开题里最重要的一步。"]};
+  }
+},
+{ id:"problem", label:"实践问题（CMO 视角）",
+  q:["现在请你做一个换位：**假设你就是这个品牌的 CMO（首席营销官）**——\n\n你在市场上最头疼的、最想解决的<b>营销问题</b>是什么？\n\n记住：开题最好从“实践中要解决的具体问题”出发，而不是“学术上还有个空白”。审稿人喜欢有现实抓手的题目。"],
+  chips:[],
+  handle(a,S){
+    const t=a.trim();
+    if(t.length<10){
+      return {msgs:["再展开一点：站在 CMO 的位置上，这个问题具体卡在哪？（比如：花了钱没声量、老话术没人听、年轻人不认、被竞品抢了心智……）"],stay:true};
+    }
+    S.problem=t;
+    const msgs=[];
+    if(/政治|国际关系|中美|外交|贸易战|地缘/.test(t)){
+      msgs.push("这个话题带点宏观政治色彩对吧？处理办法是把它<b>“控制住”</b>：在研究设计里声明政治环境为背景常量，只聚焦消费者层面的具体问题。不用担心，这是标准做法，而且这个背景是站得住的。");
+    }
+    msgs.push("那这个问题<b>现在有多严重</b>？你手头有没有能佐证的证据——销量或份额下滑、财报、行业报告、社媒口碑变化的例子？\n\n有就记下来，这就是你“研究背景”部分的第一段；没有也没关系——<b>这就是你要去补的第一份材料</b>（市场报告 / 年报），我会在最后的备忘单里替你记上。");
+    return {msgs, stay:true, chips:["没有证据，帮我记上","我有一些证据"], probe:"evidence"};
+  },
+  probe:{evidence(a,S){
+    S.evidence = /帮我记上|没有/.test(a) ? "（待补充：市场报告 / 财报数据）" : a.trim();
+    return {msgs:["好——实践问题有了，这就是你论文的“魂”。\n接下来我们决定：在营销的哪个维度上动手解决它。"]};
+  }}
+},
+{ id:"p4", label:"4P 聚焦",
+  q:["营销上能动手的无非四个维度：**产品 Product、价格 Price、渠道 Place、推广 Promotion**。\n\n硕士论文只聚焦<b>其中一个</b>——贪多必败。结合你刚才的实践问题，你想选哪个？为什么？"],
+  chips:["产品","价格","渠道","推广（营销传播）","帮我判断"],
+  handle(a,S){
+    const t=a.trim();
+    if(/帮我判断|帮我选|不知道/.test(t)){
+      return {msgs:["那我给你一张决策卡：\n• <b>产品</b>：产品还有明显改进空间时才选它；\n• <b>价格</b>：基本不选（难验证）；\n• <b>渠道</b>：基本不选（难落地）；\n• <b>推广</b>：最稳妥——产品就在那里、价格动不了，唯一能快速发力的就是沟通。\n\n结合你的问题，多数情况下我会指<b>推广</b>。你觉得呢？"],chips:["推广（营销传播）","产品","还是想选价格","还是想选渠道"],stay:true};
+    }
+    if(/还是想选价格|坚持价格|就要做价格/.test(t)){ S.p4="价格（坚持，需设计验证手段）"; return {msgs:["行，尊重你的判断——但你要在论文里回答“怎么验证价格方案的好坏”，这一步绕不过去。我记下了，我们继续。"]}; }
+    if(/还是想选渠道|坚持渠道|就要做渠道/.test(t)){ S.p4="渠道（坚持，需收窄为具体触点问题）"; return {msgs:["行——但建议你把渠道收窄成一个非常具体的传播触点问题（比如某平台的内容经营策略），否则范围太大。我记下了，继续。"]}; }
+    if(/价格/.test(t)){ return {msgs:[STANCE.price+"\n\n换一个？"],chips:["推广（营销传播）","产品"],stay:true}; }
+    if(/渠道/.test(t)){ return {msgs:[STANCE.place+"\n\n换一个？"],chips:["推广（营销传播）","产品"],stay:true}; }
+    if(/产品/.test(t)){ return {msgs:[STANCE.product+"\n\n想清楚后确认一下：还坚持做“产品”吗？"],chips:["坚持产品","换成推广"],stay:true}; }
+    if(/坚持产品/.test(t)){ S.p4="产品（消费者感知与权衡）"; return {msgs:["好，那我们就研究消费者对产品各维度的感知与权衡——识别哪些维度最能影响购买决策，并给出设计建议。我记下了。\n接下来，我们给研究找一个<b>理论抓手</b>。"]}; }
+    if(/推广|传播|沟通|promotion|营销/i.test(t)){
+      S.p4="推广（营销传播）";
+      return {msgs:[STANCE.promo+"\n\n维度定了。下一步，我们给研究找一个<b>理论抓手</b>。"]};
+    }
+    return {msgs:["我没太看懂你的选择——从这四个里挑一个：产品、价格、渠道、推广。"],chips:["产品","价格","渠道","推广（营销传播）"],stay:true};
+  }
+},
+{ id:"theory", label:"理论抓手",
+  q:["你的研究需要一点理论支撑——不必自创理论（硕士论文不要求重大理论贡献，有一点理论启示即可），但要用得对。\n\n说到“品牌传播/推广”，你脑子里有现成的理论吗？没有就说“帮我推荐”。"],
+  chips:["帮我推荐","ELM（精加工可能性模型）","原产国效应（Country of Origin）"],
+  handle(a,S){
+    const t=a.trim();
+    if(/帮我推荐|不知道|没有|不熟/.test(t)){
+      S.theory="先归类现有打法，再匹配理论（候选：原产国效应 / 诉求类型 / 说服双路径）";
+      return {msgs:["好，那我送你一条我推荐的路径：**先别急着定理论**——先把目标品牌过去一年的传播打法全部梳理出来，做归类（比如按内容主题、诉求类型、是否打“原产国叙事”），归类本身就会告诉你哪个理论最贴合。\n\n几个常备候选，你先记着：\n• <b>原产国效应</b>（Country-of-Origin）：消费者对“某国制造”的整体联想如何影响品牌评价——特别适合“某国光环”类题目；\n• <b>说服双路径</b>（ELM 中心/边缘）：适合给信息归类，但已用滥，慎作主理论；\n• <b>享乐 vs 实用诉求</b> / <b>情感 vs 功能诉求</b>：适合给帖子文案分类；\n• <b>信号理论</b>：适合“高价=高质量”式叙事。\n\n下一步我们去定方法和数据——理论可以等数据形态清楚了再最终敲定。"]};
+    }
+    S.theory=t;
+    if(/elm|精加工|elaboration/i.test(t)){
+      return {msgs:[STANCE.elm+"\n\n这个理论和你的数据能不能对上？比如它要求你能把每条传播内容可靠地归到“中心/边缘”类——你觉得做得到吗？（不确定就说不确定）"],stay:true};
+    }
+    return {msgs:["「"+t+"」——可以，先记为候选理论。\n检验标准很简单：**你的数据里必须能编码出这个理论说的东西**。比如选“原产国效应”，就要能从帖子文本里识别“德国制造/德系血统”这类叙事；选“情感诉求”，就要能区分情感 vs 功能文案。能编码，理论才算选对了。\n\n接下来是整篇论文成败的关键：<b>方法和数据</b>。"]};
+  }
+},
+{ id:"method", label:"方法与数据",
+  q:["你的<b>数据从哪里来</b>？可选的路线：\n\n① 自建档案数据（自己抽取并编码，比如品牌官方社媒帖子）\n② 问卷\n③ 实验\n④ 访谈 / 案例（定性）\n⑤ 现成二手数据库\n\n选哪条？"],
+  chips:["① 自建档案数据","② 问卷","③ 实验","④ 访谈/案例","⑤ 二手数据"],
+  handle(a,S){
+    const t=a.trim();
+    if(/坚持问卷/.test(t)){ S.method="问卷（需明确样本来源与质量控制）"; return {msgs:["行，那这两件事你必须写进开题：样本框（谁、从哪招募）和质量控制（注意力检测题、筛选规则）。记下了，继续。"]}; }
+    if(/问卷|调查|survey/i.test(t)){
+      return {msgs:[STANCE.survey],chips:["① 自建档案数据","③ 实验","坚持问卷"],stay:true};
+    }
+    if(/定性开头|定量收尾|访谈.{0,4}(档案|定量)/.test(t)){ S.method="小样本访谈（≤10人）+ 档案数据定量验证"; return {msgs:["这个组合很稳：访谈圈变量，档案数据做验证。记下了 ✅。现在搭你的<b>研究模型</b>。"]}; }
+    if(/访谈|案例|定性/.test(t)){
+      return {msgs:[STANCE.qual],chips:["① 自建档案数据","定性开头 + 定量收尾"],stay:true};
+    }
+    if(/实验/.test(t)){ S.method="实验（两版刺激物 × 两组被试）"; return {msgs:[STANCE.exp]}; }
+    if(/二手|数据库|面板/.test(t)){ S.method="二手数据"; return {msgs:[STANCE.second]}; }
+    if(/档案|爬|抓取|社媒|帖子|微博|微信|抖音|小红书|tiktok|内容分析|编码|就这个|照这个来/.test(t)){
+      S.method="自建档案数据（官方社媒帖子编码）";
+      return {msgs:[STANCE.archival+"\n\n那把它说具体，这四件事现在就定：\n1️⃣ <b>平台</b>：微信公众号 / 微博 / 抖音 / 小红书——挑你的品牌最活跃的 1-2 个；\n2️⃣ <b>账号与范围</b>：只收品牌<b>官方账号</b>，时间范围建议<b>近一年</b>；\n3️⃣ <b>帖子类型</b>：建议<b>只收图文帖</b>——音视频的分析和编码太费劲，性价比低；\n4️⃣ <b>体量</b>：单品牌 300-400 条就足够跑模型，别贪多。\n\n这四项照这个来，还是有不同想法？"],stay:true, chips:["照这个来","我有不同想法"], probe:"plan"};
+    }
+    return {msgs:["从这五条里选一条路线：① 档案数据 / ② 问卷 / ③ 实验 / ④ 访谈·案例 / ⑤ 二手数据。\n拿不准的话，说说你的顾虑，我帮你匹配。"],chips:["① 自建档案数据","② 问卷","③ 实验","④ 访谈/案例","⑤ 二手数据"],stay:true};
+  },
+  probe:{plan(a,S){
+    if(/不同想法/.test(a)){
+      return {msgs:["好，说说你的想法——我的判断标准只有一条：<b>数据能不能在一个学期内可控地拿到并编码完</b>。你说，我听。"],stay:true};
+    }
+    S.dataPlan = /照这个来|就这个|没问题|可以/.test(a) ? "官方账号 · 近一年 · 仅图文帖 · 300-400 条" : a.trim();
+    return {msgs:["方法定了 ✅。现在搭你的<b>研究模型</b>。"]};
+  }}
+},
+{ id:"model", label:"变量与模型",
+  q:["把你的模型说给我听——不用完美，先说个大概：\n\n• **自变量 X**：你打算编码/区分哪些维度？\n• **因变量 Y**：用什么来衡量效果？"],
+  chips:["Y 用互动量（赞/评/转）","帮我把变量框架搭起来"],
+  handle(a,S){
+    const t=a.trim();
+    if(/帮我把变量框架|帮我搭/.test(t)){
+      S._fw="内容主题 × 诉求类型 × 原产国叙事 × 媒介形式 × 发布渠道 → 社媒互动量（赞/评/转）";
+      return {msgs:["好，给你一个能直接用的起步框架：\n\n<b>X（对每条帖子编码）</b>\n• 内容主题：产品功能 / 品牌形象 / 促销信息 / 文化叙事\n• 诉求类型：情感 vs 功能（或：中心 vs 边缘）\n• 原产国叙事：是否出现“某国制造/血统”类话语\n• 媒介形式：图片 / 图文 / 长文 / 短文\n• 发布渠道与时机：平台、工作日 vs 周末\n\n<b>Y（客观可得）</b>\n• 互动量 = 点赞 + 评论 + 转发（文献里叫 customer engagement，非常典型）\n\n这就是“比本科复杂一点”的模型：多个预测变量 + 可靠的因变量。你可以在这个框架上增删。对框架有想调整的地方吗？"],chips:["可以，就这个框架","我想调整"],stay:true, probe:"confirm"};
+    }
+    if(/我想调整/.test(t)){ return {msgs:["说说你想怎么调——加变量、删变量、换因变量都行，我帮你判断可不可行。"],stay:true}; }
+    S.model=t;
+    const msgs=[];
+    const dvHit=/(互动|点赞|评论|转发|engagement|销量|转化)/i.test(t);
+    if(!dvHit) msgs.push("因变量（Y）还没着落——我的建议：<b>社媒互动量（点赞、评论、转发）</b>。客观、好抓、文献成熟，编码工作量最小。");
+    msgs.push(STANCE.tooSimple);
+    msgs.push(STANCE.sig);
+    msgs.push("模型有雏形了 ✅。最后几步：把<b>范围</b>钉死，然后排<b>时间线</b>。");
+    return {msgs};
+  },
+  probe:{confirm(a,S){
+    if(/可以|就这个|没问题|行|好/.test(a)){
+      S.model=S._fw||"多预测变量框架 → 社媒互动量";
+      return {msgs:["模型定了 ✅。接下来把<b>范围</b>钉死。"]};
+    }
+    S.model=a.trim();
+    return {msgs:["收到，已按你的想法更新模型 ✅（之后跑模型时发现变量太多或太少，随时回来改）。\n接下来把<b>范围</b>钉死。"]};
+  }}
+},
+{ id:"scope", label:"范围界定",
+  q:["三个收窄动作，一次确认：\n\n1️⃣ 只做<b>社交媒体</b>，还是覆盖全渠道传播？\n2️⃣ <b>单品牌</b>还是多品牌对比？\n3️⃣ 时间范围多久？"],
+  chips:["仅社媒 · 单品牌 · 近一年","我想做品牌对比","帮我决定"],
+  handle(a,S){
+    const t=a.trim();
+    if(/帮我决定/.test(t)){ S.scope="仅社媒 · 单品牌 · 近一年"; return {msgs:[STANCE.scope+"\n\n那就按最稳的来：**仅社媒 · 单品牌 · 近一年**——范围小才做得深，做得深才立得住。记下了 ✅。"]}; }
+    if(/坚持对比|就要对比/.test(t)){ S.scope="双品牌对比（编码量 ×2，需压缩其他范围）"; return {msgs:["行——那把时间范围压到近半年、只收图文帖，给编码量留出空间。记下了。"]}; }
+    if(/对比|多品牌|比亚迪|竞品|byd/i.test(t)){
+      return {msgs:["想做对比的心情我理解，但先回到你的研究问题：如果你是<b>该品牌的管理者</b>，要解决的是“自己怎么做得更好”，那单品牌就够了；对比设计会让编码量翻倍、控制变量变多，硕士论文的时间未必撑得住。\n\n建议：主研究单品牌做深，把对比作为“未来研究方向”写进结尾——两全其美。接受吗？"],chips:["接受，单品牌","坚持对比"],stay:true};
+    }
+    S.scope=t;
+    return {msgs:["范围清楚了 ✅。倒数第二关：<b>时间线</b>。"]};
+  }
+},
+{ id:"timeline", label:"时间线",
+  q:["什么时候毕业？我们从 deadline 往回倒推——告诉我你的毕业时间就行，我来算关键节点。"],
+  chips:["明年 6 月毕业","后年 6 月毕业","其他（自己填）"],
+  handle(a,S){
+    const t=a.trim();
+    let grad=null;
+    if(/明年|2027/.test(t)) grad="2027-06";
+    else if(/后年|2028/.test(t)) grad="2028-06";
+    else { const m=/(\d{4})\s*年\s*(\d{1,2})\s*月/.exec(t); if(m) grad=m[1]+"-"+String(m[2]).padStart(2,"0"); }
+    if(!grad){
+      return {msgs:["用“YYYY年M月”的格式告诉我毕业时间（比如 2027年6月），我来倒推你的关键节点。"],chips:["明年 6 月毕业","后年 6 月毕业"],stay:true};
+    }
+    const [gy,gm]=grad.split("-").map(Number);
+    const back=(n)=>{ let y=gy,m=gm-n; while(m<=0){m+=12;y--;} return [y,m]; };
+    const [sy,sm]=back(3), [dy,dm]=back(5);
+    const fmt=(y,m)=>`${y}年${m}月`;
+    S.timeline=`毕业 ${fmt(gy,gm)}；学校提交版本约 ${fmt(sy,sm)} 初（决定论文命运的版本）；初稿硬期限 ${fmt(dy,dm)} 底（给导师留 ≥1 个月修改）`;
+    return {msgs:[`好，按毕业时间 **${fmt(gy,gm)}** 倒推，你的关键节点是：\n\n📕 <b>学校提交版本</b>：约 ${fmt(sy,sm)} 初——这个版本基本决定论文生死；\n✍️ <b>初稿硬期限</b>：<b>${fmt(dy,dm)} 底</b>之前交给导师——必须留出至少一个月来回修改；\n🔧 <b>未来 1-2 个月</b>：别急着写文献综述！主攻三件事：**抽数据 → 编码 → 跑模型**；\n📝 <b>写作顺序</b>：引言 → 方法 → 文献综述 → 结果 → 结论（先做方法章，不是先写文献章）；\n📋 <b>开题</b>：`+STANCE.proposal+`\n\n时间线清楚了。最后一关：盘一盘你<b>缺什么材料</b>。`]};
+  }
+},
+{ id:"needs", label:"所需内容清单",
+  q:["开题和动笔前，你需要备齐四类材料。逐一自检，告诉我缺哪些：\n\n📖 <b>文献</b>：理论经典 + 近五年同方法实证\n🗂 <b>数据</b>：目标平台官方账号的获取方式（整理/爬取/AI 辅助）\n🛠 <b>工具</b>：编码用 Excel 起步；回归用 SPSS / Stata / R / Python 任一\n📄 <b>参照物</b>：1-2 篇用同样方法做成的好论文（可以直接找导师要）\n\n现在缺哪些？"],
+  chips:["缺文献","缺数据渠道","工具不会","都不缺，收工"],
+  handle(a,S){
+    const t=a.trim();
+    if(/都不缺|收工|齐了|没有缺|不缺/.test(t)){ S.gaps=S.gaps||"无重大缺口"; return {msgs:["材料齐备，很好 ✅。那我们收工——正在为你生成《开题方向备忘单》…"],next:true}; }
+    const msgs=[];
+    if(/文献/.test(t)) msgs.push("📖 文献怎么补：用「理论关键词 × 品牌名/行业」在 Google Scholar 和知网各扫一轮；先精读 3 篇同方法论文，照它们的变量表搭自己的编码表。");
+    if(/数据/.test(t)) msgs.push("🗂 数据怎么补：把品牌官方账号（公众号/微博/抖音等）近一年帖子逐条导出（截图存档 + Excel 登记）；文本内容可借助 AI 辅助编码，但编码表要自己定、抽 10% 人工复核。");
+    if(/工具|不会|spss|stata|r语言|python/i.test(t)) msgs.push("🛠 工具怎么办：编码 Excel 就够；跑回归 SPSS / Stata / R 任一即可，选你上课用过的。学校有方法课的话，这门课的作业就直接用你的数据练手。");
+    if(/参照|范文/.test(t)) msgs.push("📄 参照论文：直接向导师要“用同样方法做过的往届论文”，比自己摸索快得多。");
+    if(!msgs.length) msgs.push("这条我记下了。还有别的缺口吗？没有的话我们就收工。");
+    else msgs.push("还有缺的吗？没有的话我就生成《开题方向备忘单》。");
+    S.gaps=(S.gaps&&S.gaps!=="无重大缺口"?S.gaps+"；":"")+t;
+    return {msgs,chips:["都不缺，收工"],stay:true};
+  }
+}
+];
+
+/* ---------------- 状态与持久化 ---------------- */
+let S = {};
+let stageIdx = 0;
+let finished = false;
+let started = false;
+let pendingProbe = null;
+let revisitJump = false;
+let hist = [];
+let busy = false;
+
+const LS_KEY = "tpa_state_v1";
+function save(){ try{ localStorage.setItem(LS_KEY, JSON.stringify({S,stageIdx,finished,started,pendingProbe,hist})); }catch(e){} }
+function load(){
+  try{
+    const raw=localStorage.getItem(LS_KEY); if(!raw) return false;
+    const d=JSON.parse(raw); if(!d||!d.hist||!d.hist.length) return false;
+    S=d.S||{}; stageIdx=d.stageIdx||0; finished=!!d.finished; started=!!d.started;
+    pendingProbe=d.pendingProbe||null; hist=d.hist||[]; return true;
+  }catch(e){ return false; }
+}
+
+/* ---------------- LLM（可选润色） ---------------- */
+const cfg = {
+  get base(){ return localStorage.getItem("tpa_base")||""; },
+  get key(){ return localStorage.getItem("tpa_key")||""; },
+  get model(){ return localStorage.getItem("tpa_model")||"glm-4-flash"; }
+};
+async function polish(bullet, stageLabel, userMsg){
+  if(!cfg.key) return bullet;
+  try{
+    const sys = "你是「开题教练」，一位资深商学院硕士导师的开题指导助手。你的引导逻辑来自真实的一对一开题面谈。风格：温和、果断、标准先行；给出判断时附上理由；会安抚学生。每次只输出你要对学生说的话：一到三小段、总长不超过150字、口语自然。保留要点中的全部关键判断，不得新增事实，不得用markdown标题或列表符号。";
+    const body = {
+      model: cfg.model, temperature: 0.6, max_tokens: 400,
+      messages:[
+        {role:"system",content:sys},
+        {role:"user",content:"[当前进度] "+stageLabel+"\n[学生刚说] "+userMsg+"\n[你要表达的要点] "+bullet.replace(/<[^>]+>/g,"")}
+      ]
+    };
+    const url = (cfg.base||"https://open.bigmodel.cn/api/paas/v4").replace(/\/+$/,"") + "/chat/completions";
+    const r = await fetch(url,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+cfg.key},body:JSON.stringify(body)});
+    if(!r.ok) return bullet;
+    const j = await r.json();
+    const txt = j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+    return (txt&&txt.trim()) ? txt.trim() : bullet;
+  }catch(e){ return bullet; }
+}
+
+/* ---------------- 渲染 ---------------- */
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function userHtml(raw){ return esc(raw).replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>"); }
+function md(s){ return s.replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>"); }
+function addMsg(role, html, record=true){
+  const div=document.createElement("div");
+  div.className="msg "+role;
+  div.innerHTML = role==="agent"
+    ? '<div class="avatar">🧭</div><div class="bubble">'+html+'</div>'
+    : '<div class="bubble">'+html+'</div>';
+  chat.appendChild(div);
+  chat.scrollTop=chat.scrollHeight;
+  if(record) hist.push({role, html});
+}
+function addTyping(){
+  const div=document.createElement("div");
+  div.className="msg agent"; div.id="typing";
+  div.innerHTML='<div class="avatar">🧭</div><div class="bubble typing"><i></i><i></i><i></i></div>';
+  chat.appendChild(div); chat.scrollTop=chat.scrollHeight;
+}
+function delTyping(){ const t=$("#typing"); if(t) t.remove(); }
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+async function agentSay(parts, delay=650){
+  busy=true; input.disabled=true; sendBtn.disabled=true; chipsEl.innerHTML="";
+  for(const p of parts){
+    addTyping(); await sleep(delay + Math.min(p.length*6,900));
+    delTyping();
+    const html = await polish(md(p), stageLabel(), "");
+    addMsg("agent", html);
+  }
+  busy=false; input.disabled=false; sendBtn.disabled=false; save();
+}
+function stageLabel(){
+  if(finished) return "完成 · 备忘单";
+  return "第 "+(stageIdx+1)+"/"+STAGES.length+" 关 · "+STAGES[stageIdx].label;
+}
+function updateProgress(){
+  if(finished){ pfill.style.width="100%"; plabel.textContent="✅ 已生成备忘单"; return; }
+  const pct = started ? Math.round(((stageIdx)/STAGES.length)*100) : 0;
+  pfill.style.width=pct+"%";
+  plabel.textContent = started ? stageLabel() : "准备开始";
+}
+function showChips(list){
+  chipsEl.innerHTML="";
+  (list||[]).forEach(c=>{
+    const b=document.createElement("button"); b.className="chip"; b.textContent=c;
+    b.onclick=()=>{ if(busy) return; input.value=c; doSend(); };
+    chipsEl.appendChild(b);
+  });
+}
+
+/* ---------------- 流程引擎 ---------------- */
+async function runStageQ(){
+  const st=STAGES[stageIdx];
+  updateProgress();
+  await agentSay(typeof st.q==="function"?st.q(S):st.q);
+  showChips(typeof st.chips==="function"?st.chips(S):st.chips);
+  save();
+}
+
+async function handleAnswer(text){
+  const st=STAGES[stageIdx];
+  if(/^重新开始$/.test(text.trim())){ restart(); return; }
+  if(/^跳过$/.test(text.trim())){
+    S[st.id]=(S[st.id]||"")+"（暂定）";
+    await agentSay(["好，这步先标记为“暂定”，之后随时回来改。我们继续。"]);
+    return advance();
+  }
+
+  if(pendingProbe && pendingProbe.stageId===st.id && st.probe && st.probe[pendingProbe.key]){
+    const fn=st.probe[pendingProbe.key];
+    pendingProbe=null;
+    const r=fn(text,S);
+    if(r.set) Object.assign(S,r.set);
+    await agentSay(r.msgs);
+    if(r.stay){ if(r.probe) pendingProbe={stageId:st.id,key:r.probe}; showChips(r.chips); save(); return; }
+    return advance();
+  }
+
+  const r=st.handle(text,S);
+  if(r.set) Object.assign(S,r.set);
+  await agentSay(r.msgs);
+  if(r.stay){
+    if(r.probe) pendingProbe={stageId:st.id,key:r.probe};
+    showChips(r.chips); save(); return;
+  }
+  advance();
+}
+
+async function advance(){
+  if(revisitJump){ revisitJump=false; return finish(true); }
+  stageIdx++;
+  if(stageIdx>=STAGES.length){ return finish(false); }
+  pendingProbe=null;
+  await runStageQ();
+}
+
+/* ---------------- 最终备忘单 ---------------- */
+function g(k,fb){ return (S[k]&&String(S[k]).trim())||fb||"（待定）"; }
+function rq(){
+  const p4=g("p4",""), ind=g("industry","");
+  const brands=["宝马","奔驰","奥迪","保时捷","大众","西门子","博世","妮维雅","小米","华为","海尔","格力","美的","农夫山泉","可口可乐","星巴克","比亚迪","蔚来","理想","小鹏"];
+  const mb=/代表品牌：(.+?)）/.exec(ind);
+  const hit=brands.find(b=>ind.indexOf(b)>-1);
+  const subj = mb ? mb[1] : (hit || ind);
+  const map={
+    "推广（营销传播）":"什么样的传播策略更能提升目标消费者的互动与认同",
+    "产品（消费者感知与权衡）":"消费者对产品的感知与权衡如何影响其购买决策",
+    "价格（坚持，需设计验证手段）":"价格策略如何影响目标消费者的反应",
+    "渠道（坚持，需收窄为具体触点问题）":"渠道触点的经营策略如何影响目标消费者"
+  };
+  const core=map[p4]||"该维度的哪些策略更能有效触达并说服目标消费者";
+  return subj+"情境下，"+core+"？";
+}
+function appendSheetDiv(html){
+  const old=$("#sheet"); if(old) old.remove();
+  const div=document.createElement("div");
+  div.className="sheet"; div.id="sheet";
+  div.innerHTML=html
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/^# (.+)$/m,"<h2>🎓 $1</h2>")
+    .replace(/^## (.+)$/gm,"<h3>$1</h3>")
+    .replace(/^&gt; (.+)$/gm,"<p style='color:#8a7a4d'>$1</p>")
+    .replace(/^- /gm,"• ")
+    .replace(/\*\*([^*]+)\*\*/g,"<b>$1</b>")
+    .replace(/\n/g,"<br>");
+  chat.appendChild(div);
+  chat.scrollTop=chat.scrollHeight;
+  return div;
+}
+function buildSheet(){
+  const d=new Date(), pad=n=>String(n).padStart(2,"0");
+  const ts=d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+" "+pad(d.getHours())+":"+pad(d.getMinutes());
+  return "# 开题方向备忘单\n"
+  +"> 由「开题引导助手」根据对话整理 · "+ts+" · 供开题与导师讨论使用\n\n"
+  +"## 一、开题方向（一句话版）\n"
+  +"在 **"+g("industry")+"** 的背景下，从 **"+g("p4")+"** 维度切入，围绕实践问题「"+g("problem")+"」，以 **"+g("method")+"** 展开，研究问题可表述为：**"+rq()+"**\n\n"
+  +"## 二、研究背景与问题\n"
+  +"- **兴趣起点**："+g("interest")+"\n"
+  +"- **行业与品牌**："+g("industry")+"\n"
+  +"- **实践问题（CMO 视角）**："+g("problem")+"\n"
+  +"- **问题严重性的证据**："+g("evidence")+"\n\n"
+  +"## 三、研究设计\n"
+  +"- **聚焦维度（4P）**："+g("p4")+"\n"
+  +"- **理论抓手**："+g("theory")+"\n"
+  +"- **方法与数据**："+g("method")+"\n"
+  +"- **数据计划**："+g("dataPlan","官方账号 · 近一年 · 仅图文帖 · 300-400 条（建议值）")+"\n"
+  +"- **变量与模型**："+g("model")+"\n"
+  +"- **研究范围**："+g("scope")+"\n"
+  +"- **假设底线**：至少一个核心假设显著；假设逐条检验、分开报告\n\n"
+  +"## 四、时间线\n"
+  +"- "+g("timeline")+"\n"
+  +"- 未来 1-2 个月：抽数据 → 编码 → 跑模型（不要先写文献综述）\n"
+  +"- 写作顺序：引言 → 方法 → 文献综述 → 结果 → 结论\n\n"
+  +"## 五、所需内容清单\n"
+  +"- 📖 **文献**：理论经典文献；近 5 年同方法实证 3 篇以上（照其变量表搭编码表）\n"
+  +"- 🗂 **数据**："+g("dataPlan","官方账号近一年帖子")+"（AI 辅助编码 + 10% 人工复核）\n"
+  +"- 🛠 **工具**：Excel（编码）；SPSS / Stata / R 任一（回归）\n"
+  +"- 📄 **参照论文**：向导师索取用同样方法完成的往届论文 1-2 篇\n"
+  +"- 📋 **开题材料**：学校开题模板（本备忘单内容直接填入）\n"
+  +"- ⚠️ **已识别缺口**："+g("gaps","无重大缺口")+"\n\n"
+  +"## 六、下一步三件事\n"
+  +"1. 把本备忘单填入开题模板，完成开题提交；\n"
+  +"2. 启动数据抽取与编码（未来 1-2 个月的核心任务）；\n"
+  +"3. 与导师确认参照论文、模板与阶段性检查点。\n\n"
+  +"---\n*本备忘单由对话自动生成，所有“待定/暂定”项请在与导师讨论后补齐。*";
+}
+
+async function finish(fromRevisit){
+  finished=true; pendingProbe=null; updateProgress();
+  const old=$("#sheet"); if(old) old.remove();
+  hist=hist.filter(h=>!h.sheet);
+  await agentSay([fromRevisit?"改好了 ✅《开题方向备忘单》已按最新内容更新——":"全部关卡走完 🎉 我把我们的对话整理成了《开题方向备忘单》——"],500);
+  const html=buildSheet();
+  appendSheetDiv(html);
+  hist.push({role:"agent",html,sheet:true});
+  chat.scrollTop=chat.scrollHeight;
+  await agentSay([
+    "点「导出」可以把备忘单和完整对话一起带走。",
+    cfg.key
+      ? "接下来你可以随意追问或修改——直接说「改第几关」或关卡名（比如「改方法」），我们就回到那里重来。"
+      : "想修改哪一步，直接说「改第几关」或关卡名（比如「改方法」），我们就回到那里重来；或者点下面的按钮。"
+  ]);
+  showChips(["重新走一遍","我要修改某一步","复制备忘单"]);
+  save();
+}
+
+/* 重访某阶段（修改） */
+const KEYMAP={"兴趣":0,"行业":1,"品牌":1,"实践":2,"问题":2,"cmo":2,"4p":3,"维度":3,"产品":3,"价格":3,"渠道":3,"推广":3,"理论":4,"方法":5,"数据":5,"模型":6,"变量":6,"范围":7,"时间":8,"毕业":8,"材料":9,"清单":9,"文献":9};
+async function revisit(text){
+  let idx=-1;
+  const m=/第\s*(\d+)\s*关/.exec(text);
+  if(m){ const n=parseInt(m[1]); if(n>=1&&n<=STAGES.length) idx=n-1; }
+  else { const low=text.toLowerCase(); for(const k in KEYMAP){ if(low.includes(k)){ idx=KEYMAP[k]; break; } } }
+  if(idx<0){ await agentSay(["告诉我要改哪一关：说「第 N 关」或关卡名（兴趣 / 行业 / 实践问题 / 4P / 理论 / 方法 / 模型 / 范围 / 时间线 / 清单）。"],400); return; }
+  const key=STAGES[idx].id;
+  await agentSay(["好，我们回到 **"+STAGES[idx].label+"**。之前你定的是：「"+(S[key]||"（空）")+"」。\n现在说说你想怎么改？"],400);
+  finished=false; stageIdx=idx; pendingProbe=null; revisitJump=true;
+  const st=STAGES[idx];
+  if(idx===1&&S._industryRaw){ S._industryRaw=""; S.industry=""; } // 允许重选行业
+  showChips(typeof st.chips==="function"?st.chips(S):st.chips);
+  updateProgress(); save();
+}
+
+/* ---------------- 发送与输入 ---------------- */
+async function doSend(){
+  const text=input.value.trim();
+  if(!text||busy) return;
+  input.value=""; input.style.height="auto";
+  addMsg("user",userHtml(text),true);
+  save();
+  try{
+    if(finished){
+      if(/重新走一遍|重来/.test(text)){ return restart(); }
+      if(/复制备忘单/.test(text)){ return copySheet(); }
+      return revisit(text);
+    }
+    await handleAnswer(text);
+  }catch(e){
+    await agentSay(["（出了点小故障："+(e&&e.message||e)+"——再说一次试试。）"]);
+  }
+}
+sendBtn.onclick=doSend;
+input.addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); doSend(); }
+});
+input.addEventListener("input",()=>{ input.style.height="auto"; input.style.height=Math.min(input.scrollHeight,120)+"px"; });
+
+/* ---------------- 导出 / 复制 / 重启 ---------------- */
+function download(name,content){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([content],{type:"text/markdown;charset=utf-8"}));
+  a.download=name; a.click(); URL.revokeObjectURL(a.href);
+}
+function transcriptText(){
+  return hist.map(h=>(h.role==="agent"?"【助手】":"【学生】")+"\n"+h.html.replace(/<br\s*\/?>/g,"\n").replace(/<[^>]+>/g,"").replace(/&gt;/g,">").replace(/&lt;/g,"<").replace(/&amp;/g,"&")).join("\n\n");
+}
+function copySheet(){
+  const mdText=buildSheet();
+  const p = navigator.clipboard ? navigator.clipboard.writeText(mdText) : Promise.reject();
+  p.then(()=>agentSay(["备忘单已复制到剪贴板 ✅ 可以直接粘贴给导师或自己存档。"],300))
+   .catch(()=>download("开题方向备忘单.md",mdText));
+}
+$("#btn-export").onclick=()=>{
+  if(!hist.length){ alert("还没有对话内容"); return; }
+  download("开题引导-对话与备忘单.md", transcriptText()+"\n\n---\n\n"+buildSheet());
+};
+$("#btn-restart").onclick=()=>{ if(confirm("确定重新开始？当前对话将被清空。")) restart(); };
+function restart(){
+  localStorage.removeItem(LS_KEY);
+  S={}; stageIdx=0; finished=false; started=true; pendingProbe=null; revisitJump=false; hist=[];
+  chat.innerHTML=""; updateProgress();
+  runStageQ();
+}
+
+/* ---------------- 设置 ---------------- */
+const dlg=$("#settings");
+$("#btn-settings").onclick=()=>{
+  $("#cfg-base").value=localStorage.getItem("tpa_base")||"";
+  $("#cfg-key").value=localStorage.getItem("tpa_key")||"";
+  $("#cfg-model").value=localStorage.getItem("tpa_model")||"";
+  dlg.showModal();
+};
+$("#cfg-save").onclick=()=>{
+  localStorage.setItem("tpa_base",$("#cfg-base").value.trim());
+  localStorage.setItem("tpa_key",$("#cfg-key").value.trim());
+  localStorage.setItem("tpa_model",$("#cfg-model").value.trim());
+  dlg.close();
+  agentSay([cfg.key?"大模型已启用 ✅ 之后的回复会更有温度。":"已保存。当前为内置规则模式，无需联网即可使用。"],300);
+};
+$("#cfg-clear").onclick=()=>{
+  ["tpa_base","tpa_key","tpa_model"].forEach(k=>localStorage.removeItem(k));
+  dlg.close(); agentSay(["已清除大模型配置，回到内置规则模式。"],300);
+};
+
+/* ---------------- 启动 ---------------- */
+if(load()){
+  hist.forEach(h=>{ if(h.sheet) appendSheetDiv(h.html); else addMsg(h.role,h.html,false); });
+  updateProgress();
+  if(finished) showChips(["重新走一遍","我要修改某一步","复制备忘单"]);
+  else { const st=STAGES[stageIdx]; showChips(typeof st.chips==="function"?st.chips(S):st.chips); }
+  addMsg("agent","（已恢复上次的对话进度，接着聊就行。）",false);
+}else{
+  started=true;
+  updateProgress();
+  runStageQ();
+}
+</script>
+</body>
+</html>
