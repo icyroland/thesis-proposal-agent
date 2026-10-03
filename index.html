@@ -364,22 +364,42 @@ const STAGES = [
 },
 { id:"timeline", label:"时间线",
   q:["什么时候毕业？我们从 deadline 往回倒推——告诉我你的毕业时间就行，我来算关键节点。"],
-  chips:["明年 6 月毕业","后年 6 月毕业","其他（自己填）"],
+  chips:["明年 6 月毕业","今年 12 月毕业","明年 12 月毕业","其他（自己填）"],
   handle(a,S){
     const t=a.trim();
-    let grad=null;
-    if(/明年|2027/.test(t)) grad="2027-06";
-    else if(/后年|2028/.test(t)) grad="2028-06";
-    else { const m=/(\d{4})\s*年\s*(\d{1,2})\s*月/.exec(t); if(m) grad=m[1]+"-"+String(m[2]).padStart(2,"0"); }
-    if(!grad){
-      return {msgs:["用“YYYY年M月”的格式告诉我毕业时间（比如 2027年6月），我来倒推你的关键节点。"],chips:["明年 6 月毕业","后年 6 月毕业"],stay:true};
+    const now=new Date(), Y=now.getFullYear();
+    let gy=null,gm=null;
+    const abs=/(\d{4})\s*年\s*(\d{1,2})\s*月/.exec(t);
+    if(abs){ gy=+abs[1]; gm=+abs[2]; }
+    else if(/今年|明年|后年/.test(t)){
+      gy=/后年/.test(t)?Y+2:(/明年/.test(t)?Y+1:Y);
+      if(/12|年底|冬季|冬天/.test(t)) gm=12;
+      else if(/11/.test(t)) gm=11;
+      else if(/6|六|夏季|夏天/.test(t)) gm=6;
+      else if(/3|三/.test(t)) gm=3;
+      else if(/1月|一/.test(t)) gm=1;
     }
-    const [gy,gm]=grad.split("-").map(Number);
-    const back=(n)=>{ let y=gy,m=gm-n; while(m<=0){m+=12;y--;} return [y,m]; };
-    const [sy,sm]=back(3), [dy,dm]=back(5);
-    const fmt=(y,m)=>`${y}年${m}月`;
-    S.timeline=`毕业 ${fmt(gy,gm)}；学校提交版本约 ${fmt(sy,sm)} 初（决定论文命运的版本）；初稿硬期限 ${fmt(dy,dm)} 底（给导师留 ≥1 个月修改）`;
-    return {msgs:[`好，按毕业时间 **${fmt(gy,gm)}** 倒推，你的关键节点是：\n\n📕 <b>学校提交版本</b>：约 ${fmt(sy,sm)} 初——这个版本基本决定论文生死；\n✍️ <b>初稿硬期限</b>：<b>${fmt(dy,dm)} 底</b>之前交给导师——必须留出至少一个月来回修改；\n🔧 <b>未来 1-2 个月</b>：别急着写文献综述！主攻三件事：**抽数据 → 编码 → 跑模型**；\n📝 <b>写作顺序</b>：引言 → 方法 → 文献综述 → 结果 → 结论（先做方法章，不是先写文献章）；\n📋 <b>开题</b>：`+STANCE.proposal+`\n\n时间线清楚了。最后一关：盘一盘你<b>缺什么材料</b>。`]};
+    if(!gy||!gm||gm>12){
+      return {msgs:["用“YYYY年M月”的格式告诉我毕业时间（比如 2027年6月、2026年12月），我来倒推你的关键节点。"],chips:["明年 6 月毕业","今年 12 月毕业","明年 12 月毕业"],stay:true};
+    }
+    const fmt=(y,m)=>y+"年"+m+"月";
+    let schText, draftText, gy2;
+    if(gm===11||gm===12){
+      // 秋季毕业周期：初稿硬期限固定为当年 7 月底
+      gy2=gy;
+      draftText=gy+"年7月底";
+      schText=gy+"年9月底至10月初（以学院通知为准）";
+      S._grad={gy,gm,dy:gy,dm:7,sy:gy,sm:9};
+    }else{
+      const back=(n)=>{ let y=gy,m=gm-n; while(m<=0){m+=12;y--;} return [y,m]; };
+      const [sy,sm]=back(3), [dy,dm]=back(5);
+      gy2=gy;
+      draftText=fmt(dy,dm)+"底";
+      schText=fmt(sy,sm)+"初（决定论文命运的版本）";
+      S._grad={gy,gm,dy,dm,sy,sm};
+    }
+    S.timeline=`毕业 ${fmt(gy,gm)}；学校提交版本约 ${schText}；初稿硬期限 ${draftText}（给导师留 ≥1 个月修改）`;
+    return {msgs:[`好，按毕业时间 **${fmt(gy,gm)}** 倒推，你的关键节点是：\n\n📕 <b>学校提交版本</b>：约 ${schText}——这个版本基本决定论文生死；\n✍️ <b>初稿硬期限</b>：<b>${draftText}</b>之前交给导师——必须留出至少一个月来回修改；\n🔧 <b>未来 1-2 个月</b>：别急着写文献综述！主攻三件事：**抽数据 → 编码 → 跑模型**；\n📝 <b>写作顺序</b>：引言 → 方法 → 文献综述 → 结果 → 结论（先做方法章，不是先写文献章）；\n📋 <b>开题</b>：`+STANCE.proposal+`\n\n时间线清楚了。最后一关：盘一盘你<b>缺什么材料</b>。`]};
   }
 },
 { id:"needs", label:"所需内容清单",
@@ -597,21 +617,28 @@ function evidenceSentence(){
   return "现有迹象包括"+e.replace(/[。；]+$/,"")+"，后续将以行业报告与公司财报数据加以系统印证";
 }
 function scheduleLines(){
-  const tl=g("timeline","");
-  const m=/毕业 (\d{4})年(\d{1,2})月；学校提交版本约 (\d{4})年(\d{1,2})月 初[^；]*；初稿硬期限 (\d{4})年(\d{1,2})月 底/.exec(tl);
-  if(!m){
-    return ["开题阶段，完成开题报告并同步研读核心文献、设计编码表","数据阶段（约两个月），完成数据抽取与编码，建立研究数据库","分析阶段，完成模型检验与结果分析","初稿阶段，按约定时间向导师提交论文初稿","定稿阶段，根据导师意见往返修改并按学校要求提交"];
+  let gy,gm,dy,dm,sy,sm;
+  if(S._grad&&S._grad.gy){ gy=S._grad.gy;gm=S._grad.gm;dy=S._grad.dy;dm=S._grad.dm;sy=S._grad.sy;sm=S._grad.sm; }
+  else{
+    const m=/毕业 (\d{4})年(\d{1,2})月；学校提交版本约 (\d{4})年(\d{1,2})月 初[^；]*；初稿硬期限 (\d{4})年(\d{1,2})月 底/.exec(g("timeline",""));
+    if(!m){
+      return ["开题阶段，完成开题报告并同步研读核心文献、设计编码表","数据阶段（约两个月），完成数据抽取与编码，建立研究数据库","分析阶段，完成模型检验与结果分析","初稿阶段，按约定时间向导师提交论文初稿","定稿阶段，根据导师意见往返修改并按学校要求提交"];
+    }
+    gy=+m[1];gm=+m[2];sy=+m[3];sm=+m[4];dy=+m[5];dm=+m[6];
   }
   const now=new Date(), nm=(y,mo)=>y+"年"+mo+"月";
   let y=now.getFullYear(), mo=now.getMonth()+1;
+  const startY=[y,mo];
   const add=n=>{ mo+=n; while(mo>12){mo-=12;y++;} return nm(y,mo); };
-  const draftY=+m[5], draftM=+m[6], schY=+m[3], schM=+m[4];
+  const dataEnd=add(2);
+  const preY=dm===1?dy-1:dy, preM=dm===1?12:dm-1;
+  const endText=(gm===11||gm===12)?gy+"年10月初，以学院通知为准":sy+"年"+sm+"月初";
   return [
-    "开题阶段（"+nm(y,mo)+"），完成开题报告，同步研读核心文献并设计编码表",
-    "数据阶段（"+nm(y,mo)+"至"+add(2)+"），完成数据抽取与编码，建立研究数据库",
-    "分析阶段（"+add(1)+"前后），完成模型检验与结果分析，确定保留的假设与结果",
-    "初稿阶段（"+draftY+"年"+draftM+"月底前），完成论文初稿并提交导师",
-    "定稿阶段（"+draftY+"年"+draftM+"月至"+schY+"年"+schM+"月初），根据导师意见往返修改，按学校要求提交"
+    "开题阶段（"+nm(startY[0],startY[1])+"），完成开题报告，同步研读核心文献并设计编码表",
+    "数据阶段（"+nm(startY[0],startY[1])+"至"+dataEnd+"），完成数据抽取与编码，建立研究数据库",
+    "分析阶段（"+nm(preY,preM)+"前后），完成模型检验与结果分析，确定保留的假设与结果",
+    "初稿阶段（"+dy+"年"+dm+"月底前），完成论文初稿并提交导师",
+    "定稿阶段（"+dy+"年"+dm+"月至"+endText+"），根据导师意见往返修改，按学校要求提交"
   ];
 }
 function buildSheet(){
