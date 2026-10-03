@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="author" content="徐倩 (Qian Xu)">
+<meta name="copyright" content="© 2026 徐倩 (Qian Xu)，保留所有权利">
+<meta name="description" content="开题引导助手：对话式硕士论文开题引导工具，© 徐倩">
 <title>开题引导助手 · Master Thesis Guidance</title>
 <style>
   :root{
@@ -138,7 +141,7 @@
       <button id="mic" title="语音输入">🎤</button>
       <button id="send">发送</button>
     </div>
-    <div class="foot-hint">对话仅保存在你自己的浏览器本地 · 引导逻辑源自导师一对一开题面谈（2026-10）· 不替代与导师的正式讨论</div>
+    <div class="foot-hint">对话仅保存在你自己的浏览器本地 · 引导逻辑源自导师一对一开题面谈（2026-10）· 不替代与导师的正式讨论<br>© 2026 徐倩 · 本工具及引导框架为徐倩的教学成果，保留所有权利</div>
   </footer>
 </div>
 <div id="toast"></div>
@@ -689,7 +692,7 @@ function buildSheet(){
   +"- 参照论文，向导师索取采用同类方法的往届论文一至两篇\n"
   +"- 开题材料，学校开题模板，本报告内容可直接填入\n"
   +"- 待补事项，"+g("gaps","暂无重大缺口")+"\n\n"
-  +"---\n*本草稿由对话自动整理生成，待定事项请在与导师讨论后补齐。*";
+  +"---\n*本草稿由对话自动整理生成，待定事项请在与导师讨论后补齐。引导框架与报告模板为徐倩老师的教学成果（© 2026 徐倩），仅供其指导的学生用于开题准备，请勿外传或移除本声明。*";
 }
 
 /* ---------------- 报告的 LLM 润色（可选） ---------------- */
@@ -768,8 +771,23 @@ input.addEventListener("keydown",e=>{
 });
 input.addEventListener("input",()=>{ input.style.height="auto"; input.style.height=Math.min(input.scrollHeight,120)+"px"; });
 
-/* ---------------- 语音输入（Web Speech API，逐步降级） ---------------- */
-const micBtn=$("#mic"), toast=$("#toast");
+/* ---------------- 知识产权水印（全屏平铺，不阻挡操作） ---------------- */
+(function watermark(){
+  try{
+    const svg="<svg xmlns='http://www.w3.org/2000/svg' width='300' height='180'>"
+      +"<text x='150' y='92' font-size='14' fill='#2f5fa8' fill-opacity='0.085' text-anchor='middle' "
+      +"transform='rotate(-24 150 92)' font-family='PingFang SC, Hiragino Sans GB, Microsoft YaHei, sans-serif'>"
+      +"徐倩 · 开题引导助手 © 知识产权所有</text></svg>";
+    const div=document.createElement("div");
+    div.id="ipwm";
+    div.style.cssText="position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden;"
+      +"background-image:url(\"data:image/svg+xml;utf8,"+encodeURIComponent(svg)+"\");background-repeat:repeat;";
+    document.body.appendChild(div);
+    // 导出文件里同样携带声明（见 buildSheet / 导出按钮）
+  }catch(e){}
+})();
+
+/* ---------------- 语音输入（Web Speech API，逐步降级） ---------------- */const micBtn=$("#mic"), toast=$("#toast");
 let toastTimer=null;
 function toastMsg(t){
   toast.textContent=t; toast.classList.add("show");
@@ -827,7 +845,9 @@ function copySheet(){
 }
 $("#btn-export").onclick=()=>{
   if(!hist.length){ alert("还没有对话内容"); return; }
-  download("开题引导-对话与报告草稿.md", transcriptText()+"\n\n---\n\n"+(state.sheetText||buildSheet()));
+  const d=new Date(), pad=n=>String(n).padStart(2,"0");
+  const head="# 开题引导助手对话与报告草稿\n> 导出时间 "+d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+" · 工具与引导框架 © 2026 徐倩（Qian Xu），保留所有权利\n\n";
+  download("开题引导-对话与报告草稿.md", head+transcriptText()+"\n\n---\n\n"+(state.sheetText||buildSheet()));
 };
 $("#btn-restart").onclick=()=>{ if(confirm("确定重新开始？当前对话将被清空。")) restart(); };
 function restart(){
