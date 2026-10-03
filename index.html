@@ -85,6 +85,22 @@
   }
   #mic.rec{background:#ffe3e3;animation:pulse 1.2s infinite}
   @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(220,60,60,.35)}50%{box-shadow:0 0 0 8px rgba(220,60,60,0)}}
+  #vhelpq{
+    background:transparent;border:1.5px dashed #b9c6dd;color:var(--sub);border-radius:10px;
+    padding:9px 10px;font-size:13px;cursor:pointer;font-family:inherit;
+  }
+  #vhelp{
+    position:fixed;left:50%;bottom:96px;transform:translateX(-50%);
+    width:min(560px,92vw);background:var(--card);border:1px solid var(--line);border-radius:14px;
+    box-shadow:0 12px 40px rgba(20,35,70,.22);padding:14px 16px;z-index:98;
+  }
+  #vhelp h4{margin:0 0 6px;font-size:14.5px;color:var(--brand)}
+  #vhelp .vh-main{background:var(--brand-soft);border-radius:10px;padding:9px 12px;font-size:13.5px;margin-bottom:8px}
+  #vhelp .vh-alt{font-size:12.5px;color:var(--sub);margin-top:6px}
+  #vhelp .vh-actions{text-align:right;margin-top:10px}
+  #vhelp .vh-actions button{
+    border:none;background:var(--brand);color:#fff;border-radius:8px;padding:7px 16px;font-size:13px;cursor:pointer;font-family:inherit;
+  }
   #toast{
     position:fixed;left:50%;bottom:110px;transform:translateX(-50%);
     background:rgba(30,40,60,.88);color:#fff;font-size:13px;border-radius:10px;
@@ -138,13 +154,20 @@
     <div id="chips"></div>
     <div class="inputbar">
       <textarea id="input" rows="1" placeholder="输入你的回答…（回车发送，Shift+回车换行，可用 🎤 语音）"></textarea>
-      <button id="mic" title="语音输入">🎤</button>
+      <button id="mic" title="页面内语音识别（连不上时点旁边的 ? 用系统听写）">🎤</button>
+      <button id="vhelpq" title="怎么用电脑/手机自带的语音输入">?</button>
       <button id="send">发送</button>
     </div>
     <div class="foot-hint">对话仅保存在你自己的浏览器本地 · 引导逻辑源自导师一对一开题面谈（2026-10）· 不替代与导师的正式讨论<br>© 2026 徐倩 · 本工具及引导框架为徐倩的教学成果，保留所有权利</div>
   </footer>
 </div>
 <div id="toast"></div>
+<div id="vhelp" hidden>
+  <h4 id="vh-title">用设备自带的语音输入（推荐，不依赖页面语音服务）</h4>
+  <div class="vh-main" id="vh-main"></div>
+  <div class="vh-alt" id="vh-alt"></div>
+  <div class="vh-actions"><button id="vh-close">知道了</button></div>
+</div>
 
 <dialog id="settings">
   <h3>⚙︎ 大模型配置（可选）</h3>
@@ -787,7 +810,47 @@ input.addEventListener("input",()=>{ input.style.height="auto"; input.style.heig
   }catch(e){}
 })();
 
-/* ---------------- 语音输入（Web Speech API，逐步降级） ---------------- */const micBtn=$("#mic"), toast=$("#toast");
+/* ---------------- 系统听写引导（页面无法直接拉起系统语音，给出分平台教程） ---------------- */
+function platformGuide(){
+  const ua=navigator.userAgent;
+  if(/iPhone|iPad|iPod/i.test(ua)) return {
+    title:"iPhone / iPad：用系统自带的听写",
+    main:"① 点一下下面的输入框，调出键盘；② 点击键盘上的 🎤 话筒键（地球键旁边）；③ 直接说话，文字会实时打进输入框，说完点发送。首次使用需在 设置 → 通用 → 键盘 里开启“启用听写”。",
+    alt:"也可以用微信输入法 / 讯飞 / 搜狗输入法的语音键，国内网络直接可用。"
+  };
+  if(/Android/i.test(ua)) return {
+    title:"Android 手机：用输入法的语音键",
+    main:"① 点一下下面的输入框调出键盘；② 点键盘上的 🎤 话筒键（微信输入法 / 讯飞 / 搜狗都自带，国内网络直接可用）；③ 说话，文字直接打进输入框。",
+    alt:"页面内的 🎤 依赖浏览器语音云服务，连不上时请改用上面的系统听写。"
+  };
+  if(/Mac/i.test(ua)) return {
+    title:"Mac：用系统自带的听写（支持离线）",
+    main:"① 打开 系统设置 → 键盘 → 听写，开启开关（建议顺手下载离线听写包，之后断网也能用）；② 把光标点进下面的输入框；③ 连按两下 Fn 键（或你自定义的听写快捷键）开始说话，说完再按一次结束。文字直接打进输入框，走的是 Mac 自己的语音引擎。",
+    alt:"快捷键可在 听写 设置里改为“按两下 Control 键”等。"
+  };
+  if(/Windows/i.test(ua)) return {
+    title:"Windows：用系统自带的语音输入",
+    main:"① 把光标点进下面的输入框；② 按键盘上的 Win + H，屏幕上方会出现系统“语音输入”条；③ 直接说话，文字实时打进输入框（走微软服务，国内可用）。",
+    alt:"首次使用需在 设置 → 隐私和安全性 → 语音 里允许。"
+  };
+  return {
+    title:"用设备自带的语音输入",
+    main:"Mac：系统设置 → 键盘 → 听写 开启后，光标进输入框连按两下 Fn；Windows：光标进输入框按 Win+H；手机：点键盘上的话筒键。",
+    alt:"页面内的 🎤 依赖浏览器语音云服务，连不上时请改用以上系统听写。"
+  };
+}
+function showVHelp(){
+  const gp=platformGuide();
+  $("#vh-title").textContent=gp.title;
+  $("#vh-main").textContent=gp.main;
+  $("#vh-alt").textContent=gp.alt;
+  $("#vhelp").hidden=false;
+}
+$("#vh-close").onclick=()=>{ $("#vhelp").hidden=true; };
+$("#vhelpq").onclick=showVHelp;
+
+/* ---------------- 语音输入（Web Speech API，逐步降级） ---------------- */
+const micBtn=$("#mic"), toast=$("#toast");
 let toastTimer=null;
 function toastMsg(t){
   toast.textContent=t; toast.classList.add("show");
@@ -797,13 +860,14 @@ function toastMsg(t){
 (function initVoice(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){
-    micBtn.onclick=()=>toastMsg("当前浏览器不支持语音识别。手机上推荐直接用输入法自带的语音听写（微信输入法、搜狗、讯飞），效果相同。");
+    micBtn.onclick=()=>showVHelp();
     return;
   }
   const rec=new SR();
   rec.lang="zh-CN"; rec.interimResults=true; rec.continuous=false;
-  let base="", on=false;
-  rec.onstart=()=>{ on=true; micBtn.classList.add("rec"); toastMsg("正在听…说完停顿一下即可，再点一次可结束"); };
+  let base="", on=false, watch=null;
+  const clearWatch=()=>{ if(watch){ clearTimeout(watch); watch=null; } };
+  rec.onstart=()=>{ clearWatch(); on=true; micBtn.classList.add("rec"); toastMsg("正在听…说完停顿一下即可，再点一次可结束"); };
   rec.onresult=e=>{
     let interim="";
     for(let i=e.resultIndex;i<e.results.length;i++){
@@ -813,18 +877,22 @@ function toastMsg(t){
     input.value=(base+interim).replace(/^\s+/,"");
     input.dispatchEvent(new Event("input"));
   };
-  rec.onend=()=>{ on=false; micBtn.classList.remove("rec"); base=""; input.focus(); };
+  rec.onend=()=>{ clearWatch(); on=false; micBtn.classList.remove("rec"); base=""; input.focus(); };
   rec.onerror=e=>{
-    on=false; micBtn.classList.remove("rec"); base="";
+    clearWatch(); on=false; micBtn.classList.remove("rec"); base="";
     if(e.error==="not-allowed"||e.error==="service-not-allowed") toastMsg("麦克风权限被拒绝。请在浏览器地址栏的权限设置里允许麦克风后重试。");
-    else if(e.error==="network") toastMsg("语音服务暂时连不上（网络受限）。可以改用输入法自带的语音听写。");
+    else if(e.error==="network"){ toastMsg("页面内语音服务连不上（网络受限），已为你打开设备自带听写的用法 👇"); showVHelp(); }
     else if(e.error==="no-speech") toastMsg("没听到声音，再点一次试试。");
   };
   micBtn.onclick=()=>{
     if(busy){ toastMsg("等我问完再录哈"); return; }
     if(on){ rec.stop(); return; }
     base=input.value&&input.value.endsWith(" ")?input.value:(input.value?input.value+" ":"");
-    try{ rec.start(); }catch(err){ toastMsg("启动失败，请再试一次。"); }
+    try{
+      rec.start();
+      clearWatch();
+      watch=setTimeout(()=>{ if(!on){ toastMsg("页面内语音暂时没响应，已打开设备自带听写的用法 👇"); showVHelp(); } },3500);
+    }catch(err){ toastMsg("启动失败，已为你打开设备自带听写的用法 👇"); showVHelp(); }
   };
 })();
 
